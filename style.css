@@ -1,0 +1,74 @@
+@import url("https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+
+.font-work,
+* {
+  font-family: "Work Sans", sans-serif;
+}
+
+/* custom scrollbar  */
+/* width */
+.scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+/* Track */
+.scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+/* Handle */
+.scrollbar::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 40px;
+}
+
+/* Handle on hover */
+.scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.type-indicator span {
+  display: inline-block;
+  padding: 0 0.075em;
+  animation: type-indicator 1s ease-in-out infinite;
+  transform: translateY(0);
+}
+
+.type-indicator span:nth-child(2) {
+  animation-delay: 150ms;
+}
+
+.type-indicator span:nth-child(3) {
+  animation-delay: 300ms;
+}
+
+@keyframes type-indicator {
+  0% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+  50% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+}
+
+.blink {
+  animation: blink 1.25s infinite;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+  69% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}

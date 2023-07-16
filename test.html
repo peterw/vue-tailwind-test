@@ -1,166 +1,623 @@
 <head>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-  <style>
-    .message {
-      position: relative;
-    }
-
-    .message:after {
-      content: "";
-      top: 0;
-      position: absolute;
-      border: 0.75em solid transparent;
-      border-top-color: blue;
-      display: block;
-    }
-
-    .message.assistant:after {
-      left: -0.45em;
-      border-top-color: inherit;
-    }
-
-    .message.user:after {
-      right: -0.45em;
-      border-top-color: inherit;
-    }
-
-    .type-indicator span {
-      display: inline-block;
-      padding: 0 0.075em;
-      animation: type-indicator 1s ease-in-out infinite;
-      transform: translateY(0);
-    }
-
-    .type-indicator span:nth-child(2) {
-      animation-delay: 150ms;
-    }
-
-    .type-indicator span:nth-child(3) {
-      animation-delay: 300ms;
-    }
-
-    @keyframes type-indicator {
-      0% {
-        transform: none;
-        animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
-      }
-      50% {
-        transform: translateY(-25%);
-        animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
-      }
-    }
-
-    .blink {
-      animation: blink 1.25s infinite;
-    }
-
-    @keyframes blink {
-      0% {
-        opacity: 1;
-      }
-      69% {
-        opacity: 1;
-      }
-      70% {
-        opacity: 0;
-      }
-      100% {
-        opacity: 0;
-      }
-    }
-    .messages-container {
-      height: 300vh; /* Adjust the height according to your needs */
-      overflow-y: auto;
-    }
-
-    .fa-upload,
-    .fa-microphone {
-      padding: 15px;
-      font-size: 20px;
-      background: #f8f9fa; /* Light Gray */
-      color: #000000; /* Black */
-      border-radius: 50%;
-    }
-
-    .fa-upload:hover,
-    .fa-microphone:hover {
-      background: #e9ecef; /* Slightly darker gray when hovered */
-    }
-  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
-  <div id="app" class="">
+  <div id="app">
     <div class="w-screen h-screen bg-gray-50 flex flex-col">
-      <div class="bg-gray-800 flex justify-center p-4">
-        <span class="text-white font-bold">BuildFast Labs</span>
-      </div>
-
-      <div
-        class="w-full max-w-screen-lg flex-1 m-auto pt-10 px-10 pb-44 my-4 messages-container"
-      >
-        <div class="flex flex-col">
-          <div
-            v-for="message in messages"
-            :key="message.id"
-            class="message rounded-lg py-2 px-6 mb-4"
-            :class="message.role === 'assistant' ? 'assistant bg-blue-100 border-blue-100 self-start' : 'user bg-green-200 border-green-200 self-end'"
-          >
-            <span v-if="message.type === 'text'">[[message.body ]]</span>
-            <img
-              v-if="message.type === 'image'"
-              :src="message.url"
-              alt="Display Picture"
-              class="w-1/2 h-1/2"
-            />
-            <audio
-              v-if="message.type === 'audio'"
-              :src="message.url"
-              controls
-            ></audio>
-            <video
-              v-if="message.type === 'video'"
-              :src="message.url"
-              controls
-              class="w-full h-auto"
-            ></video>
-
-            <span
-              v-if="message.beingTyped"
-              class="w-2.5 bg-gray-600 h-4 inline-block -mb-0.5 align-baseline animate-blink"
-            ></span>
-          </div>
-          <div
-            v-if="showTyping"
-            class="message assistant rounded-lg py-2.5 px-6 mb-4 bg-blue-100 border-blue-100 self-start"
-          >
-            <div class="type-indicator">
-              <span>.</span><span>.</span><span>.</span>
+      <!-- chat messaging component -->
+      <div class="flex h-screen antialiased text-gray-800">
+        <div class="flex flex-row h-full w-full overflow-x-hidden">
+          <!-- chat aside component start -->
+          <div class="flex flex-col py-3 px-2 w-64 bg-white flex-shrink-0">
+            <div class="flex items-center justify-between w-full">
+              <h2 class="font-medium text-gray-600">Messages</h2>
+              <div
+                class="flex items-center justify-center rounded-full text-indigo-700 hover:bg-indigo-600 hover:text-white bg-indigo-100 h-8 w-8 cursor-pointer">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="feather feather-edit">
+                  <path
+                    d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path
+                    d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+              </div>
+            </div>
+            <div class="relative flex items-center gap-2 mt-5">
+              <svg
+                class="absolute text-indigo-600 left-2"
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="feather feather-search">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Search..."
+                class="bg-gray-100 py-2 pl-8 pr-2 rounded-xl w-full outline-indigo-600" />
+            </div>
+            <div class="h-px w-full bg-gray-200 my-5"></div>
+            <div class="flex items-center gap-2">
+              <p class="font-medium text-gray-500 text-xs">
+                Active Conversations
+              </p>
+              <span
+                class="flex items-center text-xs justify-center bg-indigo-600 text-white h-4 w-4 rounded-full"
+                >4</span
+              >
+            </div>
+            <div
+              class="flex flex-col overflow-y-auto overflow-x-hidden space-y-2 py-3 scrollbar">
+              <div
+                class="flex w-full relative group items-center hover:bg-indigo-100 rounded-xl p-2 gap-2 cursor-pointer">
+                <div
+                  class="flex items-center justify-center h-8 w-8 bg-indigo-200 rounded-full shrink-0">
+                  M
+                </div>
+                <div class="grow">
+                  <div class="flex items-center justify-between">
+                    <h4 class="text-sm font-medium text-black">Marta Curtis</h4>
+                    <time class="text-gray-500 text-[10px]"> 06:20pm </time>
+                  </div>
+                  <div class="flex items-center grow justify-between">
+                    <p
+                      class="text-gray-500 whitespace-nowrap text-xs text-ellipsis overflow-hidden w-40">
+                      Lorem ipsum dolor sit, amet Lorem ipsum dolor sit,
+                    </p>
+                  </div>
+                </div>
+                <div
+                  class="absolute hidden group-hover:flex right-2 bg-white shrink-0 rounded-full hover:bg-red-500 text-red-500 hover:text-white h-7 w-7 shadow flex items-center justify-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="feather feather-trash-2">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path
+                      d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    <line x1="10" y1="11" x2="10" y2="17" />
+                    <line x1="14" y1="11" x2="14" y2="17" />
+                  </svg>
+                </div>
+              </div>
+              <div
+                class="flex w-full items-center relative group hover:bg-indigo-100 rounded-xl p-2 gap-2 cursor-pointer">
+                <div
+                  class="flex items-center justify-center h-8 w-8 bg-indigo-200 rounded-full shrink-0">
+                  P
+                </div>
+                <div class="grow">
+                  <div class="flex items-center justify-between">
+                    <h4 class="text-sm font-medium text-black">
+                      Philip Tucker
+                    </h4>
+                    <time class="text-gray-500 text-[10px]"> 06:20pm </time>
+                  </div>
+                  <div class="flex items-center grow justify-between">
+                    <p
+                      class="text-gray-500 whitespace-nowrap text-xs text-ellipsis overflow-hidden w-40">
+                      Lorem ipsum dolor sit, amet Lorem ipsum dolor sit,
+                    </p>
+                  </div>
+                </div>
+                <div
+                  class="absolute hidden group-hover:flex right-2 bg-white shrink-0 rounded-full hover:bg-red-500 text-red-500 hover:text-white h-7 w-7 shadow flex items-center justify-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="feather feather-trash-2">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path
+                      d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    <line x1="10" y1="11" x2="10" y2="17" />
+                    <line x1="14" y1="11" x2="14" y2="17" />
+                  </svg>
+                </div>
+              </div>
+              <div
+                class="flex w-full items-center relative group hover:bg-indigo-100 rounded-xl p-2 gap-2 cursor-pointer">
+                <div
+                  class="flex items-center justify-center h-8 w-8 bg-indigo-200 rounded-full shrink-0">
+                  C
+                </div>
+                <div class="grow">
+                  <div class="flex items-center justify-between">
+                    <h4 class="text-sm font-medium text-black">
+                      Christine Reid
+                    </h4>
+                    <time class="text-gray-500 text-[10px]"> 06:20pm </time>
+                  </div>
+                  <div class="flex items-center grow justify-between">
+                    <p
+                      class="text-gray-500 whitespace-nowrap text-xs text-ellipsis overflow-hidden w-40">
+                      Lorem ipsum dolor sit, amet Lorem ipsum dolor sit,
+                    </p>
+                  </div>
+                </div>
+                <div
+                  class="absolute hidden group-hover:flex right-2 bg-white shrink-0 rounded-full hover:bg-red-500 text-red-500 hover:text-white h-7 w-7 shadow flex items-center justify-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="feather feather-trash-2">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path
+                      d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    <line x1="10" y1="11" x2="10" y2="17" />
+                    <line x1="14" y1="11" x2="14" y2="17" />
+                  </svg>
+                </div>
+              </div>
+              <div
+                class="flex w-full items-center relative group hover:bg-indigo-100 rounded-xl p-2 gap-2 cursor-pointer">
+                <div
+                  class="flex items-center justify-center h-8 w-8 bg-indigo-200 rounded-full shrink-0">
+                  J
+                </div>
+                <div class="grow">
+                  <div class="flex items-center justify-between">
+                    <h4 class="text-sm font-medium text-black">Jerry Guzman</h4>
+                    <time class="text-gray-500 text-[10px]"> 06:20pm </time>
+                  </div>
+                  <div class="flex items-center grow justify-between">
+                    <p
+                      class="text-gray-500 whitespace-nowrap text-xs text-ellipsis overflow-hidden w-40">
+                      Lorem ipsum dolor sit, amet Lorem ipsum dolor sit,
+                    </p>
+                    <span
+                      class="flex items-center text-xs justify-center bg-indigo-600 text-white h-4 w-4 rounded-full"
+                      >1</span
+                    >
+                  </div>
+                </div>
+                <div
+                  class="absolute hidden group-hover:flex right-2 bg-white shrink-0 rounded-full hover:bg-red-500 text-red-500 hover:text-white h-7 w-7 shadow flex items-center justify-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="feather feather-trash-2">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path
+                      d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    <line x1="10" y1="11" x2="10" y2="17" />
+                    <line x1="14" y1="11" x2="14" y2="17" />
+                  </svg>
+                </div>
+              </div>
+              <div
+                class="flex w-full items-center relative group hover:bg-indigo-100 rounded-xl p-2 gap-2 cursor-pointer">
+                <div
+                  class="flex items-center justify-center h-8 w-8 bg-indigo-200 rounded-full shrink-0">
+                  H
+                </div>
+                <div class="grow">
+                  <div class="flex items-center justify-between">
+                    <h4 class="text-sm font-medium text-black">Henry Boyd</h4>
+                    <time class="text-gray-500 text-[10px]"> 06:20pm </time>
+                  </div>
+                  <div class="flex items-center grow justify-between">
+                    <p
+                      class="text-gray-500 whitespace-nowrap text-xs text-ellipsis overflow-hidden w-40">
+                      Lorem ipsum dolor sit, amet Lorem ipsum dolor sit,
+                    </p>
+                  </div>
+                </div>
+                <div
+                  class="absolute hidden group-hover:flex right-2 bg-white shrink-0 rounded-full hover:bg-red-500 text-red-500 hover:text-white h-7 w-7 shadow flex items-center justify-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="feather feather-trash-2">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path
+                      d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    <line x1="10" y1="11" x2="10" y2="17" />
+                    <line x1="14" y1="11" x2="14" y2="17" />
+                  </svg>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+          <!-- chat aside component end -->
 
-      <div class="fixed inset-x-0 bottom-0 bg-gray-200">
-        <form
-          class="max-w-screen-lg m-auto w-full p-4 flex space-x-4 justify-center items-center"
-          @submit.prevent="sendMessage"
-        >
-          <input
-            id="message"
-            type="text"
-            autocomplete="off"
-            class="border rounded-md p-2 flex-1 border-gray-300"
-            v-model="newMessage"
-            placeholder="Your message..."
-          />
-          <button
-            class="bg-gray-800 text-white px-4 py-2 rounded-md"
-            :class="{'opacity-50' : waitingOnResponse}"
-          >
-            Send
-          </button>
-        </form>
+          <!-- chat content start -->
+          <div class="flex flex-col flex-auto h-full p-4">
+            <div
+              class="flex flex-col flex-auto flex-shrink-0 rounded-2xl bg-gray-200/50 h-full p-4">
+              <div
+                class="flex w-full bg-white shadow-sm mb-2 items-center rounded-xl p-2 gap-2">
+                <div
+                  class="flex items-center justify-center h-8 w-8 bg-indigo-100 text-black rounded-full shrink-0">
+                  M
+                </div>
+                <div class="grow">
+                  <div class="flex items-center justify-between">
+                    <h4 class="text-sm font-semibold text-indigo-700">
+                      Marta Curtis
+                    </h4>
+                    <time class="text-gray-500 text-[10px]"> 06:20pm </time>
+                  </div>
+                  <div class="flex items-center grow justify-between">
+                    <p class="text-gray-500 whitespace-nowrap text-xs">
+                      Last seen Dec 16, 2019
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="flex flex-col h-full overflow-x-auto mb-4 scrollbar">
+                <div class="flex flex-col h-full">
+                  <div class="grid grid-cols-12 gap-y-2">
+                    <div class="col-start-1 col-end-8 p-3 rounded-lg">
+                      <div class="flex flex-row items-center">
+                        <div
+                          class="flex items-center justify-center text-white h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
+                          A
+                        </div>
+                        <div
+                          class="relative ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
+                          <div>Hey How are you today?</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-start-1 col-end-8 p-3 rounded-lg">
+                      <div class="flex flex-row items-center">
+                        <div
+                          class="flex items-center justify-center text-white h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
+                          A
+                        </div>
+                        <div
+                          class="relative ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
+                          <div>
+                            Lorem ipsum dolor sit amet, consectetur adipisicing
+                            elit. Vel ipsa commodi illum saepe numquam maxime
+                            asperiores voluptate sit, minima perspiciatis.
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-start-6 col-end-13 p-3 rounded-lg">
+                      <div
+                        class="flex items-center justify-start flex-row-reverse">
+                        <div
+                          class="flex items-center justify-center text-white h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
+                          A
+                        </div>
+                        <div
+                          class="relative mr-3 text-sm bg-indigo-100 py-2 px-4 shadow rounded-xl">
+                          <div>I'm ok what about you?</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-start-6 col-end-13 p-3 rounded-lg">
+                      <div
+                        class="flex items-center justify-start flex-row-reverse">
+                        <div
+                          class="flex items-center justify-center text-white h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
+                          A
+                        </div>
+                        <div
+                          class="relative mr-3 text-sm bg-indigo-100 py-2 px-4 shadow rounded-xl">
+                          <div>
+                            Lorem ipsum dolor sit, amet consectetur adipisicing.
+                            ?
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-start-1 col-end-8 p-3 rounded-lg">
+                      <div class="flex flex-row items-center">
+                        <div
+                          class="flex items-center justify-center text-white h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
+                          A
+                        </div>
+                        <div
+                          class="relative ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
+                          <div>Lorem ipsum dolor sit amet !</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-start-6 col-end-13 p-3 rounded-lg">
+                      <div
+                        class="flex items-center justify-start flex-row-reverse">
+                        <div
+                          class="flex items-center justify-center text-white h-10 w-10 rounded-full bg-indigo-500 flex-shrink-0">
+                          A
+                        </div>
+                        <div
+                          class="relative mr-3 text-sm bg-indigo-100 py-2 px-4 shadow rounded-xl">
+                          <div>
+                            Lorem ipsum dolor sit, amet consectetur adipisicing.
+                            ?
+                          </div>
+                          <div
+                            class="absolute text-xs bottom-0 right-0 -mb-5 mr-2 text-gray-500">
+                            Seen
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-start-1 col-end-8 p-3 rounded-lg">
+                      <div class="flex flex-row items-center">
+                        <div
+                          class="flex items-center justify-center h-10 w-10 text-white rounded-full bg-indigo-500 flex-shrink-0">
+                          A
+                        </div>
+                        <div
+                          class="relative ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
+                          <div>
+                            Lorem ipsum dolor sit amet consectetur adipisicing
+                            elit. Perspiciatis, in.
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-start-1 col-end-8 p-3 rounded-lg">
+                      <div class="flex flex-row items-center">
+                        <div
+                          class="flex items-center justify-center h-10 w-10 text-white rounded-full bg-indigo-500 flex-shrink-0">
+                          A
+                        </div>
+                        <div
+                          class="relative ml-3 text-sm bg-white py-2 px-4 shadow rounded-xl">
+                          <div class="flex flex-row items-center">
+                            <button
+                              class="flex items-center justify-center bg-indigo-600 hover:bg-indigo-800 rounded-full h-8 w-8">
+                              <svg
+                                class="w-6 h-6 text-white"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="1.5"
+                                  d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="1.5"
+                                  d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                              </svg>
+                            </button>
+                            <div
+                              class="flex flex-row items-center space-x-px ml-4">
+                              <div
+                                class="h-2 w-0.5 bg-gray-400 rounded-full"></div>
+                              <div
+                                class="h-2 w-0.5 bg-gray-400 rounded-full"></div>
+                              <div
+                                class="h-4 w-0.5 bg-gray-400 rounded-full"></div>
+                              <div
+                                class="h-8 w-0.5 bg-gray-400 rounded-full"></div>
+                              <div
+                                class="h-8 w-0.5 bg-gray-400 rounded-full"></div>
+                              <div
+                                class="h-10 w-0.5 bg-gray-400 rounded-full"></div>
+                              <div
+                                class="h-10 w-0.5 bg-gray-400 rounded-full"></div>
+                              <div
+                                class="h-12 w-0.5 bg-gray-400 rounded-full"></div>
+                              <div
+                                class="h-10 w-0.5 bg-gray-400 rounded-full"></div>
+                              <div
+                                class="h-6 w-0.5 bg-gray-400 rounded-full"></div>
+                              <div
+                                class="h-5 w-0.5 bg-gray-400 rounded-full"></div>
+                              <div
+                                class="h-4 w-0.5 bg-gray-400 rounded-full"></div>
+                              <div
+                                class="h-3 w-0.5 bg-gray-400 rounded-full"></div>
+                              <div
+                                class="h-2 w-0.5 bg-gray-400 rounded-full"></div>
+                              <div
+                                class="h-2 w-0.5 bg-gray-400 rounded-full"></div>
+                              <div
+                                class="h-2 w-0.5 bg-gray-400 rounded-full"></div>
+                              <div
+                                class="h-10 w-0.5 bg-gray-400 rounded-full"></div>
+                              <div
+                                class="h-2 w-0.5 bg-gray-400 rounded-full"></div>
+                              <div
+                                class="h-10 w-0.5 bg-gray-400 rounded-full"></div>
+                              <div
+                                class="h-8 w-0.5 bg-gray-400 rounded-full"></div>
+                              <div
+                                class="h-8 w-0.5 bg-gray-400 rounded-full"></div>
+                              <div
+                                class="h-1 w-0.5 bg-gray-400 rounded-full"></div>
+                              <div
+                                class="h-1 w-0.5 bg-gray-400 rounded-full"></div>
+                              <div
+                                class="h-2 w-0.5 bg-gray-400 rounded-full"></div>
+                              <div
+                                class="h-8 w-0.5 bg-gray-400 rounded-full"></div>
+                              <div
+                                class="h-8 w-0.5 bg-gray-400 rounded-full"></div>
+                              <div
+                                class="h-2 w-0.5 bg-gray-400 rounded-full"></div>
+                              <div
+                                class="h-2 w-0.5 bg-gray-400 rounded-full"></div>
+                              <div
+                                class="h-2 w-0.5 bg-gray-400 rounded-full"></div>
+                              <div
+                                class="h-2 w-0.5 bg-gray-400 rounded-full"></div>
+                              <div
+                                class="h-4 w-0.5 bg-gray-400 rounded-full"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-start-6 col-end-13 p-3 rounded-lg">
+                      <div
+                        class="flex items-center justify-start flex-row-reverse">
+                        <div class="flex flex-col gap-3">
+                          <div
+                            v-for="message in messages"
+                            :key="message.id"
+                            class="message relative mr-3 text-sm rounded-xl"
+                            :class="message.role === 'assistant' ? 'assistant bg-blue-100 border-blue-100 self-start' : 'user bg-indigo-100 py-2 px-4 shadow border-green-200 self-end'">
+                            <span v-if="message.type === 'text'"
+                              >[[message.body ]]</span
+                            >
+                            <img
+                              v-if="message.type === 'image'"
+                              :src="message.url"
+                              alt="Display Picture"
+                              class="h-10 w-10 rounded-full object-cover flex-shrink-0" />
+                            <audio
+                              v-if="message.type === 'audio'"
+                              :src="message.url"
+                              controls></audio>
+                            <video
+                              v-if="message.type === 'video'"
+                              :src="message.url"
+                              controls
+                              class="w-full h-auto"></video>
+
+                            <span
+                              v-if="message.beingTyped"
+                              class="w-2.5 bg-gray-600 h-4 inline-block -mb-0.5 align-baseline animate-blink"></span>
+                          </div>
+                          <div
+                            v-if="showTyping"
+                            class="message rounded-xl py-1 px-3 mb-4 bg-gray-200 self-start">
+                            <div class="type-indicator">
+                              <span>.</span><span>.</span><span>.</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <form
+                @submit.prevent="sendMessage"
+                class="flex flex-row items-center m-auto h-16 rounded-xl bg-white w-full px-4">
+                <div>
+                  <button
+                    class="flex items-center justify-center text-gray-400 hover:text-gray-600">
+                    <svg
+                      class="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                    </svg>
+                  </button>
+                </div>
+                <div class="flex-grow ml-4">
+                  <div class="relative w-full">
+                    <input
+                      id="message"
+                      autocomplete="off"
+                      type="text"
+                      v-model="newMessage"
+                      placeholder="Your message..."
+                      class="flex w-full border rounded-xl focus:outline-none focus:border-indigo-300 pl-4 h-10" />
+                    <button
+                      class="absolute flex items-center justify-center h-full w-12 right-0 top-0 text-gray-400 hover:text-gray-600">
+                      <svg
+                        class="w-6 h-6"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="ml-4">
+                  <button
+                    :class="{'opacity-50' : waitingOnResponse}"
+                    class="flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 rounded-xl text-white px-4 py-1 flex-shrink-0">
+                    <span>Send</span>
+                    <span class="ml-2">
+                      <svg
+                        class="w-4 h-4 transform rotate-45 -mt-px"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                      </svg>
+                    </span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+          <!-- chat content end -->
+        </div>
       </div>
     </div>
   </div>
@@ -217,11 +674,10 @@
             this.typeOutResponse(image_url, "image");
             this.showTyping = false;
             this.waitingOnResponse = false;
-
           })
           .catch((error) => {
             console.error("Error:", error);
-                        this.showTyping = false;
+            this.showTyping = false;
             this.waitingOnResponse = false;
             this.typeOutResponse("SORRY THERE WAS AN ERROR", "text");
           });
@@ -271,4 +727,4 @@
   }
 </script>
 
-{% endblock %}
+<!-- {% endblock %} -->
